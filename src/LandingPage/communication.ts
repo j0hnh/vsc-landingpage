@@ -29,6 +29,8 @@ interface MessageFromWebview
   field?:'shade'|'layout';
   /** For command 'patch' the new value to assign to the field. */
   value?:any;
+  /** For command 'open' whether to open in new window. */
+  newWindow?:boolean;
 }
 
 /** 
@@ -230,7 +232,7 @@ export async function handleMessageFromWebview(message:MessageFromWebview,webvie
         if(path) 
         {
           console.log(`Trying to open ${path}`);
-          vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(path)); //https://code.visualstudio.com/api/references/commands
+          vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(path), message.newWindow || false); //https://code.visualstudio.com/api/references/commands
           return;
         }
         else //group in model > cannot open group

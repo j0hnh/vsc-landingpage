@@ -277,7 +277,7 @@ function clickProject(event)
     case 'tExplore':
       console.log('open()');
       guidProvider = event.target.closest('[data-guid]');
-      if (guidProvider) {vscode.postMessage({command:'open',guid:guidProvider.dataset['guid']});}
+      if (guidProvider) {vscode.postMessage({command:'open',guid:guidProvider.dataset['guid'],newWindow:event.ctrlKey});}
       else {alert('Cannot open, closest guid not found.');}
       break;
     case 'tPaint':
@@ -361,6 +361,10 @@ window.addEventListener('message', event =>
             for(const labeled of elProject.querySelectorAll('[data-field="project.label"]'))
             {
               labeled.innerText = landingPageProject.label;
+            }
+            for(const labeled of elProject.querySelectorAll('[data-field="project.path"]'))
+            {
+              labeled.innerText = landingPageProject.path;
             }
             
             let svg = typesvg_question;
