@@ -1,39 +1,46 @@
-name: package extension
+name: Package Extension
 
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:  # 允许手动运行
 
 jobs:
-  build:
+  package:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: 'npm'
 
-    - name: Build
-      run: |
-        npm i vscode@latest
-        npm ci
-        npm i -g @vscode/vsce
-        vsce package
-        
-    - uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
-        prerelease: true
-        title: "Development Build"
-        files: |
-          *.vsix
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install vsce and package extension
+        run: |
+          npm install -g @vscode/vsce
+          vsce package --no-yarn
+
+      - name: Upload .vsix as artifact (for PRs or debugging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-package
+          path: "*.vsix"
+
+      - name: Create GitHub Release (only on push to master)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Latest Development Build"
+          files: "*.vsix"
